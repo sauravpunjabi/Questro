@@ -50,8 +50,8 @@ const InterviewCard = ({ interviewid, userId, role, type, techstack, createdAt }
 
                 <Button className='btn-primary'>
                     <Link href={feedback
-                        ? `/interview/${interviewid}/feedback`
-                        : `/interview/${interviewid}`
+                        ? `/interview/${ interviewid }/feedback`
+                        : `/interview/${ interviewid }`
                     }>
                         {feedback ? 'Check feedback' : 'View interview'}
                     </Link>

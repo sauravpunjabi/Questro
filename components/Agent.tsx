@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
 import Image from 'next/image'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { vapi } from '@/lib/vapi.sdk'
+import { interviewer } from '@/constants'
 
 enum CallStatus{
     Inactive = 'Inactive',
@@ -9,14 +11,52 @@ enum CallStatus{
     Finished = 'Finished',
 }
 
-const Agent = ({ userName } : AgentProps) => {
+const Agent = ({ userName, questions } : AgentProps) => {
 
-    const callStatus = CallStatus.Active;
-    const isSpeaking = true;
-    const messages = [
-        'Whats your name?',
-        "My name is ABCD, nice to meet you!"
-    ]
+    const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.Inactive);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [messages, setMessages] = useState<string[]>([]);
+
+    useEffect(() => {
+        const onCallStart = () => {
+            setCallStatus(CallStatus.Active);
+        };
+        const onCallEnd = () => {
+            setCallStatus(CallStatus.Finished);
+            setIsSpeaking(false);
+        };
+        const onMessage = (message: any) => {
+            if (message.type === 'transcript' && message.transcriptType === 'final') {
+                setMessages((prev) => [...prev, message.transcript]);
+            }
+        };
+        const onSpeechStart = () => setIsSpeaking(true);
+        const onSpeechEnd = () => setIsSpeaking(false);
+
+        vapi.on('call-start', onCallStart);
+        vapi.on('call-end', onCallEnd);
+        vapi.on('message', onMessage);
+        vapi.on('speech-start', onSpeechStart);
+        vapi.on('speech-end', onSpeechEnd);
+
+        return () => {
+            vapi.off('call-start', onCallStart);
+            vapi.off('call-end', onCallEnd);
+            vapi.off('message', onMessage);
+            vapi.off('speech-start', onSpeechStart);
+            vapi.off('speech-end', onSpeechEnd);
+        };
+    }, []);
+
+    const startCall = async () => {
+        setCallStatus(CallStatus.Connecting);
+        const joinedQuestions = questions?.map((q, i) => `${i + 1}. ${q}`).join('\n') || '';
+        await vapi.start(interviewer(joinedQuestions));
+    };
+
+    const stopCall = () => {
+        vapi.stop();
+    };
 
     const lastMessage = messages[messages.length - 1];
 
@@ -62,16 +102,16 @@ const Agent = ({ userName } : AgentProps) => {
 
 
         <div className='w-full flex justify-center'>
-            {callStatus !== 'Active' ? (
-                <button className='relative btn-call'>
-                    <span className={cn('absolute animate-ping rounded-full opacity-75', callStatus !== 'Connecting' && 'hidden')}/>
+            {callStatus !== CallStatus.Active ? (
+                <button onClick={startCall} className='relative btn-call'>
+                    <span className={cn('absolute animate-ping rounded-full opacity-75', callStatus !== CallStatus.Connecting && 'hidden')}/>
 
                         <span>
-                            {callStatus === 'Inactive' || callStatus === 'Finished' ? 'Call' : '...'}
+                            {callStatus === CallStatus.Inactive || callStatus === CallStatus.Finished ? 'Call' : '...'}
                         </span>
                 </button>
             ) : (
-                <button className='btn-disconnect'>
+                <button onClick={stopCall} className='btn-disconnect'>
                     End
                 </button>
             )}
