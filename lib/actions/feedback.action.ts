@@ -8,36 +8,39 @@ export const createFeedback = async (params: CreateFeedbackParams) => {
     try {
         const { interviewId, userId, transcript, feedbackId } = params;
 
-        const transcriptText = transcript.map(t => `${t.role}: ${t.content}`).join('\n');
-        
-        const prompt = `You are an expert interviewer evaluating a candidate based on the following transcript.
-        
-Transcript:
-${transcriptText}
+        const transcriptText = transcript
+            .map(t => `${t.role === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${t.content}`)
+            .join('\n');
 
-Evaluate the candidate and provide constructive feedback.
-Return ONLY a valid JSON object strictly matching this structure (no markdown formatting, no code blocks):
+        const prompt = `Based on the following interview transcript, generate structured feedback. Return ONLY a valid JSON object with no markdown, no backticks, no extra text, matching this exact structure:
 {
-  "totalScore": number,
+  "totalScore": number between 0-100,
   "categoryScores": [
-    { "name": "Communication Skills", "score": number, "comment": "string" },
-    { "name": "Technical Knowledge", "score": number, "comment": "string" },
-    { "name": "Problem Solving", "score": number, "comment": "string" },
-    { "name": "Cultural Fit", "score": number, "comment": "string" },
-    { "name": "Confidence and Clarity", "score": number, "comment": "string" }
+    { "name": "Communication Skills", "score": number 0-10, "comment": string },
+    { "name": "Technical Knowledge", "score": number 0-10, "comment": string },
+    { "name": "Problem Solving", "score": number 0-10, "comment": string },
+    { "name": "Cultural Fit", "score": number 0-10, "comment": string },
+    { "name": "Confidence and Clarity", "score": number 0-10, "comment": string }
   ],
-  "strengths": ["string"],
-  "areasForImprovement": ["string"],
-  "finalAssessment": "string"
-}`;
+  "strengths": string[],
+  "areasForImprovement": string[],
+  "finalAssessment": string
+}
+
+Transcript:
+${transcriptText}`;
 
         const { text } = await generateText({
             model: google("gemini-1.5-pro"),
             prompt,
         });
 
-        // Parse the JSON feedback matching the Feedback interface
-        const parsedFeedback = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+        let parsedFeedback;
+        try {
+            parsedFeedback = JSON.parse(text.trim());
+        } catch {
+            parsedFeedback = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+        }
 
         const feedbackRef = feedbackId 
             ? db.collection('feedback').doc(feedbackId)
