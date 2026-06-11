@@ -2,7 +2,6 @@
 
 import { db, auth } from "@/firebase/admin";
 import { cookies } from "next/headers";
-import { success } from "zod";
 
 const One_Day = 60 * 60 * 24;
 

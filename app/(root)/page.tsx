@@ -1,13 +1,18 @@
 import { Button } from '@/components/ui/button'
-import { dummyInterviews } from '@/constants'
-import { Inter } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
 import InterviewCard from "@/components/InterviewCard";
+import { getCurrentUser } from '@/lib/actions/auth.action';
+import { getInterviewsByUserId } from '@/lib/actions/interview.action';
+import { redirect } from 'next/navigation';
 
 
-const page = () => {
+const page = async () => {
+  const user = await getCurrentUser();
+  if (!user) redirect('/sign-in');
+
+  const interviews = await getInterviewsByUserId(user.id, 6);
+
   return (
     <>
       <section className='card-cta'>
@@ -22,7 +27,7 @@ const page = () => {
           <Button asChild className='btn-primary max-sm:w-full'>
           <Link href='/interview'>
             Start an interview
-          
+
           </Link>
           </Button>
         </div>
@@ -34,23 +39,27 @@ const page = () => {
           <h2>Your Interviews</h2>
 
           <div className='interviews-section'>
-
-            {dummyInterviews.map((interview) =>(
-              <InterviewCard {...interview} key={interview.id}/>
-            ))}
-
-          </div>
-      </section>
-
-      <section className='flex flex-col gap-6 mt-8'>
-          <h2>Take an interview</h2>
-
-          <div className="interviews-section">
-            {dummyInterviews.map((interview) =>(
-              <InterviewCard {...interview} key={interview.id}/>
-            ))}
-
-            {/*<p>There are no interviews available</p>*/}
+            {interviews.length > 0 ? (
+              interviews.map((interview) => (
+                <InterviewCard
+                  key={interview.id}
+                  interviewId={interview.id}
+                  userId={user.id}
+                  role={interview.role}
+                  type={interview.type}
+                  techstack={interview.techstack}
+                  createdAt={interview.createdAt}
+                />
+              ))
+            ) : (
+              <div className='flex flex-col items-center gap-4 py-12 text-center'>
+                <h3>No interviews yet</h3>
+                <p className='text-light-400'>Start your first interview to see it here</p>
+                <Button asChild className='btn-primary'>
+                  <Link href='/interview'>Create Interview</Link>
+                </Button>
+              </div>
+            )}
           </div>
       </section>
     </>

@@ -1,19 +1,21 @@
+'use client';
+
 import { getRandomInterviewCover } from '@/lib/utils';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import { Button } from './ui/button';
-import Link from 'next/link';
 import DisplayTechIcons from './DisplayTechIcons';
+import { useRouter } from 'next/navigation';
 
-const InterviewCard = ({ interviewid, userId, role, type, techstack, createdAt } : InterviewCardProps) => {
-
+const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt } : InterviewCardProps) => {
+    const router = useRouter();
     const feedback = null as Feedback | null;
     const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY')
 
   return (
     <div className='card-border w-[360px] max-sm:w-full min-h-96'>
-      
+
         <div className='card-interview'>
 
             <div>
@@ -48,13 +50,15 @@ const InterviewCard = ({ interviewid, userId, role, type, techstack, createdAt }
             <div className='flex flex-row justify-between'>
                 <DisplayTechIcons techStack={techstack} />
 
-                <Button className='btn-primary'>
-                    <Link href={feedback
-                        ? `/interview/${ interviewid }/feedback`
-                        : `/interview/${ interviewid }`
-                    }>
-                        {feedback ? 'Check feedback' : 'View interview'}
-                    </Link>
+                <Button
+                    className='btn-primary'
+                    onClick={() => router.push(
+                        feedback
+                            ? `/interview/${interviewId}/feedback`
+                            : `/interview/${interviewId}`
+                    )}
+                >
+                    {feedback ? 'Check feedback' : 'View interview'}
                 </Button>
 
             </div>
