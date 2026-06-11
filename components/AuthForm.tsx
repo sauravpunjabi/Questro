@@ -63,7 +63,7 @@ const AuthForm = ({ type } : { type : FormType }) => {
               return;
             }
 
-            toast.success("Account successfully created! Please sign in.");
+            toast.success("Account created! Please sign in.");
             router.push("/sign-in");
           }
           else{
@@ -83,7 +83,7 @@ const AuthForm = ({ type } : { type : FormType }) => {
               email, idToken
             })
 
-            toast.success("Sign in successful")
+            toast.success("Welcome back!")
             router.push('/')
           }
       }

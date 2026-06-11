@@ -7,9 +7,8 @@ import { Button } from './ui/button';
 import DisplayTechIcons from './DisplayTechIcons';
 import { useRouter } from 'next/navigation';
 
-const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt } : InterviewCardProps) => {
+const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt, feedback } : InterviewCardProps) => {
     const router = useRouter();
-    const feedback = null as Feedback | null;
     const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY')
 

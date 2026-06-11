@@ -4,6 +4,7 @@ import Link from 'next/link'
 import InterviewCard from "@/components/InterviewCard";
 import { getCurrentUser } from '@/lib/actions/auth.action';
 import { getInterviewsByUserId } from '@/lib/actions/interview.action';
+import { getFeedbackByInterviewId } from '@/lib/actions/feedback.action';
 import { redirect } from 'next/navigation';
 
 
@@ -12,6 +13,12 @@ const page = async () => {
   if (!user) redirect('/sign-in');
 
   const interviews = await getInterviewsByUserId(user.id, 6);
+
+  const feedbacks = await Promise.all(
+    interviews.map(i =>
+      getFeedbackByInterviewId({ interviewId: i.id, userId: user.id }).catch(() => null)
+    )
+  );
 
   return (
     <>
@@ -25,42 +32,42 @@ const page = async () => {
           </p>
 
           <Button asChild className='btn-primary max-sm:w-full'>
-          <Link href='/interview'>
-            Start an interview
-
-          </Link>
+            <Link href='/interview'>
+              Start an interview
+            </Link>
           </Button>
         </div>
 
-        <Image src= '/robot.png' alt = "robot" width={400} height={400} className='max-sm:hidden'/>
+        <Image src='/robot.png' alt="robot" width={400} height={400} className='max-sm:hidden' />
       </section>
 
       <section className='flex flex-col gap-6 mt-8'>
-          <h2>Your Interviews</h2>
+        <h2>Your Interviews</h2>
 
-          <div className='interviews-section'>
-            {interviews.length > 0 ? (
-              interviews.map((interview) => (
-                <InterviewCard
-                  key={interview.id}
-                  interviewId={interview.id}
-                  userId={user.id}
-                  role={interview.role}
-                  type={interview.type}
-                  techstack={interview.techstack}
-                  createdAt={interview.createdAt}
-                />
-              ))
-            ) : (
-              <div className='flex flex-col items-center gap-4 py-12 text-center'>
-                <h3>No interviews yet</h3>
-                <p className='text-light-400'>Start your first interview to see it here</p>
-                <Button asChild className='btn-primary'>
-                  <Link href='/interview'>Create Interview</Link>
-                </Button>
-              </div>
-            )}
-          </div>
+        <div className='interviews-section'>
+          {interviews.length > 0 ? (
+            interviews.map((interview, index) => (
+              <InterviewCard
+                key={interview.id}
+                interviewId={interview.id}
+                userId={user.id}
+                role={interview.role}
+                type={interview.type}
+                techstack={interview.techstack}
+                createdAt={interview.createdAt}
+                feedback={feedbacks[index]}
+              />
+            ))
+          ) : (
+            <div className='flex flex-col items-center gap-4 py-12 text-center'>
+              <h3>No interviews yet</h3>
+              <p className='text-light-400'>Start your first interview to see it here</p>
+              <Button asChild className='btn-primary'>
+                <Link href='/interview'>Create Interview</Link>
+              </Button>
+            </div>
+          )}
+        </div>
       </section>
     </>
   )

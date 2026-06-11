@@ -45,6 +45,7 @@ interface InterviewCardProps {
   type: string;
   techstack: string[];
   createdAt?: string;
+  feedback?: Feedback | null;
 }
 
 interface AgentProps {
@@ -85,13 +86,13 @@ interface SignUpParams {
 
 type FormType = "sign-in" | "sign-up";
 
-interface InterviewFormProps {
-  interviewId: string;
+interface GenerateInterviewParams {
   role: string;
   level: string;
   type: string;
   techstack: string[];
   amount: number;
+  userId: string;
 }
 
 interface TechIconProps {

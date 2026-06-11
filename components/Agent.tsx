@@ -45,6 +45,7 @@ const Agent = ({ userName, userId, interviewId, questions = [], type: _type }: A
 
     const triggerFeedback = async () => {
       if (!interviewId || !userId) return;
+      toast.success('Interview completed! Generating your feedback...');
       setIsLoading(true);
       try {
         await createFeedback({ interviewId, userId, transcript: messagesRef.current });
